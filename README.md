@@ -8,7 +8,7 @@ becomes one sentence.
 
 This repository is the guide to doing that properly: six tutorials, a full tool reference, and
 the parts where automation should stop. The worked examples use the hosted MCP server that ships
-with [CRM Solid](https://crmsolid.com), which reads and writes **your own** Google Ads account
+with [Pinlyx](https://pinlyx.com), which reads and writes **your own** Google Ads account
 over OAuth. The shapes translate to any Model Context Protocol server that wraps the Google Ads
 API.
 
@@ -88,9 +88,9 @@ workflow needs them, the tutorials say so instead of pretending.
 | Node.js 20 or newer | For the `npx` bridge |
 | An MCP client | Claude Desktop, Claude Code, Cursor, or anything else that speaks the protocol |
 | Plan | The MCP server and API keys are on the Business plan. Google Ads in the CRM is on every plan, including Free |
-| A CRM Solid account | Holds the ad account connection and the key |
+| A Pinlyx account | Holds the ad account connection and the key |
 
-Connecting and using Google Ads inside CRM Solid is available on every plan, including Free, but
+Connecting and using Google Ads inside Pinlyx is available on every plan, including Free, but
 the API key and the MCP server are Business-plan developer surfaces, so the MCP path needs
 Business. [Sign up](https://app.crmsolid.com/register), connect your Google Ads account under
 Insights > Ads > Google Ads, then create an API key at
@@ -132,5 +132,5 @@ conversation cannot pause a campaign even if the model decides it should.
 Corrections are welcome, particularly when a client's behaviour changes. The bar for a tutorial is
 that someone reproduced it from a clean machine. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-MIT licensed. CRM Solid is a commercial product; this guide is not, and the tutorials name the
+MIT licensed. Pinlyx is a commercial product; this guide is not, and the tutorials name the
 places where another server would work just as well.

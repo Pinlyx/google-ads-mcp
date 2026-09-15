@@ -1,6 +1,6 @@
 # Publish a Google Ads Campaign From Your Assistant, With a Human Approval Step
 
-Publishing a Google Ads campaign over MCP is the one workflow in this guide where the assistant is deliberately not in charge. The campaign is built by a person in the CRM Solid panel, validated against Google with `validateOnly` so nothing is created, approved by a person, and only then published by the assistant. What comes out the other end is a real campaign in the ad account, created paused, which somebody has to enable on purpose. This tutorial walks that whole path, shows the JSON-RPC calls behind it, and is explicit about the parts that are not automated and why.
+Publishing a Google Ads campaign over MCP is the one workflow in this guide where the assistant is deliberately not in charge. The campaign is built by a person in the Pinlyx panel, validated against Google with `validateOnly` so nothing is created, approved by a person, and only then published by the assistant. What comes out the other end is a real campaign in the ad account, created paused, which somebody has to enable on purpose. This tutorial walks that whole path, shows the JSON-RPC calls behind it, and is explicit about the parts that are not automated and why.
 
 Start with [connect Google Ads to your assistant](./01-connect-google-ads-to-your-assistant.md) if the server is not wired into your client yet. Two conventions before the examples. MCP tool output is camelCase. And a `tools/call` response wraps the payload as a JSON string in `result.content[0].text`, so every JSON block below is that inner payload after one more parse.
 
@@ -31,9 +31,9 @@ Two properties make the shape above defensible: the publish tool refuses any dra
 
 ## Before you start
 
-You need a CRM Solid account with a connected Google Ads account, and an API key from [settings/developers](https://app.crmsolid.com/settings/developers) carrying both `ads:read` and `ads:write`. Keys are shown once, so store it before you close the dialog.
+You need a Pinlyx account with a connected Google Ads account, and an API key from [settings/developers](https://app.crmsolid.com/settings/developers) carrying both `ads:read` and `ads:write`. Keys are shown once, so store it before you close the dialog.
 
-Connecting and using Google Ads inside CRM Solid is available on every plan, including Free, but the API key and the MCP server are Business-plan developer surfaces, so the MCP path needs Business. Ads Studio, where the draft in this tutorial is built and approved, is on the Business plan as well.
+Connecting and using Google Ads inside Pinlyx is available on every plan, including Free, but the API key and the MCP server are Business-plan developer surfaces, so the MCP path needs Business. Ads Studio, where the draft in this tutorial is built and approved, is on the Business plan as well.
 
 ```jsonc
 {
@@ -301,4 +301,4 @@ A clean launch costs five requests, plus one for every extra dry run. On a cappe
 - [Tool reference](../reference/tools.md)
 - [Repository index](../README.md)
 
-External: the [MCP specification](https://modelcontextprotocol.io), the [CRM Solid MCP docs](https://docs.crmsolid.com/integrations/mcp/), the [npm package](https://www.npmjs.com/package/@crmsolid/mcp-server), and Google's own documentation for [mutating resources](https://developers.google.com/google-ads/api/docs/mutating/overview), which covers the grouped mutate and the temporary resource names the publish step relies on.
+External: the [MCP specification](https://modelcontextprotocol.io), the [Pinlyx MCP docs](https://docs.pinlyx.com/integrations/mcp/), the [npm package](https://www.npmjs.com/package/@crmsolid/mcp-server), and Google's own documentation for [mutating resources](https://developers.google.com/google-ads/api/docs/mutating/overview), which covers the grouped mutate and the temporary resource names the publish step relies on.

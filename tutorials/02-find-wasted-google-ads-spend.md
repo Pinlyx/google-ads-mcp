@@ -12,12 +12,12 @@ The assistant does the reading, the sorting and the first pass of judgement. You
 | Server | `@crmsolid/mcp-server`, the local bridge to `https://api.crmsolid.com/mcp` |
 | Scope on the key | `ads:read` only. This whole tutorial is reads |
 | Plan | Business. The MCP server and API keys are on the Business plan. Google Ads in the CRM is on every plan, including Free |
-| CRM Solid account | Holds the ad account connection and the key |
+| Pinlyx account | Holds the ad account connection and the key |
 | Daily allowance | None, because Business has no Google Ads cap. In the panel the same meter allows 50 requests a day on Free and 500 on Pro |
 | Google Ads account | Connected by OAuth in the panel, see below |
 | Time | About 25 minutes the first time, about 10 minutes weekly after that |
 
-Connect the ad account first, in the CRM Solid panel: Insights > Ads > Google Ads > "Connect Google Ads account". The MCP tools read the account you connect there, so a key with `ads:read` and no connected account gives you tools that work and return nothing useful. Then create the key at [app.crmsolid.com/settings/developers](https://app.crmsolid.com/settings/developers) and add one entry to your client config. If none of that is in place yet, [01: Connect Google Ads to Your AI Assistant](./01-connect-google-ads-to-your-assistant.md) walks through it.
+Connect the ad account first, in the Pinlyx panel: Insights > Ads > Google Ads > "Connect Google Ads account". The MCP tools read the account you connect there, so a key with `ads:read` and no connected account gives you tools that work and return nothing useful. Then create the key at [app.crmsolid.com/settings/developers](https://app.crmsolid.com/settings/developers) and add one entry to your client config. If none of that is in place yet, [01: Connect Google Ads to Your AI Assistant](./01-connect-google-ads-to-your-assistant.md) walks through it.
 
 ```jsonc
 {
@@ -202,7 +202,7 @@ The cost floor matters more than the bucket names. A 30 day window on a small ac
 
 ## Step 5: Decide what to exclude, and add the exclusion yourself
 
-**Adding a negative keyword is not exposed as an MCP tool on this server.** There is no tool that creates one, and no argument on any existing tool that does it as a side effect. Any assistant that offers to add negatives for you is describing something that does not exist. The exclusion is added by a person, in one of two places: the Google Ads interface, under the campaign or ad group's negative keywords, or the CRM Solid campaign builder in Ads Studio. What the assistant can usefully produce is the list you paste there.
+**Adding a negative keyword is not exposed as an MCP tool on this server.** There is no tool that creates one, and no argument on any existing tool that does it as a side effect. Any assistant that offers to add negatives for you is describing something that does not exist. The exclusion is added by a person, in one of two places: the Google Ads interface, under the campaign or ad group's negative keywords, or the Pinlyx campaign builder in Ads Studio. What the assistant can usefully produce is the list you paste there.
 
 ```text
 For every row in the irrelevant bucket, produce an exclusion list:
@@ -315,5 +315,5 @@ Then raise the cost floor in step 4 from 25 to 50 and count how many rows surviv
 - [03: Let an AI Pause Campaigns and Move Budget, Safely](./03-pause-and-rebudget-safely.md), the write loop, with confirmation and read-back
 - [06: Scopes, Quotas and Safety for a Google Ads MCP Server](./06-scopes-quotas-and-safety.md)
 - [Tool reference](../reference/tools.md): every argument, default and scope on this surface
-- [docs.crmsolid.com/integrations/mcp/](https://docs.crmsolid.com/integrations/mcp/) and [@crmsolid/mcp-server on npm](https://www.npmjs.com/package/@crmsolid/mcp-server)
+- [docs.pinlyx.com/integrations/mcp/](https://docs.pinlyx.com/integrations/mcp/) and [@crmsolid/mcp-server on npm](https://www.npmjs.com/package/@crmsolid/mcp-server)
 - [The MCP specification](https://modelcontextprotocol.io)

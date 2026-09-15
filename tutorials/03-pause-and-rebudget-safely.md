@@ -2,7 +2,7 @@
 
 Every write in a Google Ads account spends real money or stops it. The guarded write loop is the shape that makes handing those writes to an assistant defensible: read the current settings, state the proposed change in plain language, get a human to confirm it, make one change at a time, then read the account back and prove the change landed.
 
-This tutorial builds that loop with the CRM Solid MCP server against a live Google Ads account. It assumes you have already found something worth changing, for example with [02: Find Wasted Google Ads Spend With an AI Assistant](./02-find-wasted-google-ads-spend.md). The worked example is one decision: a competitor campaign that spent 310 EUR in 30 days without a single conversion gets paused, and its budget moves to the campaign that is converting.
+This tutorial builds that loop with the Pinlyx MCP server against a live Google Ads account. It assumes you have already found something worth changing, for example with [02: Find Wasted Google Ads Spend With an AI Assistant](./02-find-wasted-google-ads-spend.md). The worked example is one decision: a competitor campaign that spent 310 EUR in 30 days without a single conversion gets paused, and its budget moves to the campaign that is converting.
 
 Advanced level. You should already be comfortable with the read tools and with your client's approval prompts.
 
@@ -229,13 +229,13 @@ must be "{adGroupId}~{id}" built from the same breakdown row. Show me the row
 you took both halves from before you call.
 ```
 
-Search terms have no id of their own at all. In a `search_terms` breakdown, `id` is the search term text, and there is no status tool that accepts it. Excluding a search term is done in the Google Ads interface or the CRM Solid campaign builder, and no MCP tool on this server adds a negative keyword.
+Search terms have no id of their own at all. In a `search_terms` breakdown, `id` is the search term text, and there is no status tool that accepts it. Excluding a search term is done in the Google Ads interface or the Pinlyx campaign builder, and no MCP tool on this server adds a negative keyword.
 
 **Verify:** before any ad or keyword write, the assistant shows the breakdown row and the id it assembled. One tilde, digits on both sides, nothing else.
 
 ## Removing is permanent
 
-`status` takes `enabled`, `paused` and `removed`. The first two are reversible from either side. The third is not: `removed` issues a remove operation against the ad account. It is not a soft delete in CRM Solid, there is no restore tool on this surface, and the entity stops appearing in breakdown reports, which filter removed rows out. Historical spend stays in the account's own reporting, but the thing itself is gone and its settings with it.
+`status` takes `enabled`, `paused` and `removed`. The first two are reversible from either side. The third is not: `removed` issues a remove operation against the ad account. It is not a soft delete in Pinlyx, there is no restore tool on this surface, and the entity stops appearing in breakdown reports, which filter removed rows out. Historical spend stays in the account's own reporting, but the thing itself is gone and its settings with it.
 
 There is almost never a reason for an assistant to send `removed`. Pausing stops the spend immediately and keeps the option to switch it back on. Put the ban in the saved prompt:
 
@@ -277,7 +277,7 @@ Write down what landed. Ask the assistant for a list of the writes that returned
 
 ## Campaign creation is not one of these writes
 
-There is no tool that invents a campaign. Campaigns are built in the CRM Solid panel's Ads Studio, a human approves the draft there, and only then can an assistant publish it:
+There is no tool that invents a campaign. Campaigns are built in the Pinlyx panel's Ads Studio, a human approves the draft there, and only then can an assistant publish it:
 
 - `crm_list_ad_drafts` finds the `draftId`, with the draft's status.
 - `crm_dry_run_ad_draft` asks the ad network to validate the draft and returns the network's own field-level problems. Nothing is created.
@@ -311,5 +311,5 @@ Then try the same writes through the `--read-only` entry and watch them fail bef
 - [04: Publish a Google Ads Campaign From Your Assistant, With a Human Approval Step](./04-publish-a-campaign-with-approval.md)
 - [06: Scopes, Quotas and Safety for a Google Ads MCP Server](./06-scopes-quotas-and-safety.md)
 - [Tool reference](../reference/tools.md): every argument, default, scope and annotation on this surface
-- [docs.crmsolid.com/integrations/mcp/](https://docs.crmsolid.com/integrations/mcp/) and [@crmsolid/mcp-server on npm](https://www.npmjs.com/package/@crmsolid/mcp-server)
+- [docs.pinlyx.com/integrations/mcp/](https://docs.pinlyx.com/integrations/mcp/) and [@crmsolid/mcp-server on npm](https://www.npmjs.com/package/@crmsolid/mcp-server)
 - [The MCP specification](https://modelcontextprotocol.io)

@@ -6,7 +6,7 @@ one guarded write and undone it. Four stages: connect the ad account, create a k
 server into your client, make the calls. Every stage ends with a check that fails if you skipped
 the one before it.
 
-The worked example uses the CRM Solid MCP server, which wraps the Google Ads API and speaks to
+The worked example uses the Pinlyx MCP server, which wraps the Google Ads API and speaks to
 your own account over OAuth. The shape is the same for any stdio MCP server: only the package
 name, the environment variable and the tool names change.
 
@@ -17,7 +17,7 @@ name, the environment variable and the tool names change.
 | Node.js 20 or newer | The bridge is ESM and declares `node >= 20` | `node --version` |
 | An MCP client | Claude Desktop, Claude Code and Cursor are covered below | Any recent build |
 | A Google Ads account you can sign into | The OAuth consent is granted by its owner | You can open ads.google.com |
-| A CRM Solid account | Holds the connection and the API key | Created in step 1 |
+| A Pinlyx account | Holds the connection and the API key | Created in step 1 |
 | The Business plan | The MCP server and API keys are on the Business plan. Google Ads in the CRM is on every plan, including Free | Your billing page |
 | `curl` | Verifies the server without a client in the way | `curl --version` |
 

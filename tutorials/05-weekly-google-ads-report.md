@@ -45,7 +45,7 @@ curl -s https://api.crmsolid.com/mcp \
 {
   "count": 1,
   "accounts": [
-    { "customerId": "5093114872", "name": "CRM Solid TR", "currency": "TRY", "timeZone": "Europe/Istanbul",
+    { "customerId": "5093114872", "name": "Pinlyx TR", "currency": "TRY", "timeZone": "Europe/Istanbul",
       "status": "Connected", "connectedAt": "2026-04-02T09:14:00Z", "lastSyncedAt": "2026-09-15T07:02:11Z" }
   ],
   "dailyQuota": { "used": 0, "limit": null, "remaining": null, "unlimited": true }
@@ -228,7 +228,7 @@ conversion tracking recorded nothing, rather than reporting performance.
 
 Every figure below is fictional and exists to show the shape and the internal consistency to demand. Do not benchmark against it.
 
-**Account:** CRM Solid TR (5093114872), currency TRY. **Window:** `LAST_7_DAYS`. **Compared against:** the previous 7 days, derived from `LAST_14_DAYS`. **Pulled:** 2026-09-15T08:10Z.
+**Account:** Pinlyx TR (5093114872), currency TRY. **Window:** `LAST_7_DAYS`. **Compared against:** the previous 7 days, derived from `LAST_14_DAYS`. **Pulled:** 2026-09-15T08:10Z.
 
 | Metric | This week | Last week | Change | Source |
 |---|---|---|---|---|
@@ -302,4 +302,4 @@ One habit worth keeping: never run the report from the session that makes change
 - [Tool reference](../reference/tools.md)
 - [Repository index](../README.md)
 
-External: the [MCP specification](https://modelcontextprotocol.io), the [CRM Solid MCP docs](https://docs.crmsolid.com/integrations/mcp/), the [npm package](https://www.npmjs.com/package/@crmsolid/mcp-server), and Google's reference for [date ranges in reporting queries](https://developers.google.com/google-ads/api/docs/query/date-ranges).
+External: the [MCP specification](https://modelcontextprotocol.io), the [Pinlyx MCP docs](https://docs.pinlyx.com/integrations/mcp/), the [npm package](https://www.npmjs.com/package/@crmsolid/mcp-server), and Google's reference for [date ranges in reporting queries](https://developers.google.com/google-ads/api/docs/query/date-ranges).

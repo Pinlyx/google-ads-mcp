@@ -9,7 +9,7 @@ Work through it before you hand any assistant a key that can write.
 
 ## The threat model in one paragraph
 
-The model never sees your Google credentials. The bridge holds a CRM Solid API key in its
+The model never sees your Google credentials. The bridge holds a Pinlyx API key in its
 environment, calls are executed server side with your own OAuth grant, and the model sees tool
 names, JSON schemas and results. So the risk is not credential theft. The risk is **a correct tool
 called with wrong arguments**: the right budget number on the wrong campaign, a pause that was
