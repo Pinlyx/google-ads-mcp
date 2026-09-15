@@ -32,7 +32,7 @@ Ask it: *"Which search terms cost money last week and converted nothing?"*
 | # | Tutorial | What it teaches | Level | Time |
 |---|---|---|---|---|
 | 01 | [Connect Google Ads to your AI assistant](./tutorials/01-connect-google-ads-to-your-assistant.md) | Create a key, wire the server into Claude Desktop, Claude Code or Cursor, make your first read call | Beginner | 10 min |
-| 02 | [Find wasted Google Ads spend](./tutorials/02-find-wasted-google-ads-spend.md) | The search term to negative keyword loop, without burning your daily request allowance | Intermediate | 40 min |
+| 02 | [Find wasted Google Ads spend](./tutorials/02-find-wasted-google-ads-spend.md) | The search term to negative keyword loop, without burning requests in a loop | Intermediate | 40 min |
 | 03 | [Pause campaigns and move budget, safely](./tutorials/03-pause-and-rebudget-safely.md) | The guarded write loop: read, state, confirm, change, verify | Advanced | 45 min |
 | 04 | [Publish a campaign with a human approval step](./tutorials/04-publish-a-campaign-with-approval.md) | Build, dry run against Google, approve, publish paused, then enable | Intermediate | 40 min |
 | 05 | [A weekly report your assistant can write](./tutorials/05-weekly-google-ads-report.md) | Account, campaign, ad group and search term rollup you can defend in a meeting | Intermediate | 35 min |
@@ -49,7 +49,7 @@ Eleven tools cover the account end to end. Full schemas are in
 
 | Tool | Answers |
 |---|---|
-| `crm_list_google_ads_accounts` | Which ad accounts are connected, and how much of today's allowance is left |
+| `crm_list_google_ads_accounts` | Which ad accounts are connected, and what the daily meter reports |
 | `crm_google_ads_summary` | Spend, impressions, clicks, CTR, average CPC, conversions, conversion value, ROAS |
 | `crm_google_ads_campaigns` | Campaign table with status and spend, most expensive first |
 | `crm_google_ads_breakdown` | Ad groups, ads, keywords or search terms, with the same metrics per row |
@@ -83,28 +83,39 @@ workflow needs them, the tutorials say so instead of pretending.
 
 ## Requirements
 
-- Node.js 20 or newer, for the `npx` bridge.
-- An MCP client: Claude Desktop, Claude Code, Cursor, or anything else that speaks the protocol.
-- A CRM Solid account. The free plan is enough to follow every tutorial here:
-  [sign up](https://app.crmsolid.com/register), connect your Google Ads account under
-  Insights > Ads > Google Ads, then create an API key at
-  [settings/developers](https://app.crmsolid.com/settings/developers) with `ads:read`, plus
-  `ads:write` when you want the assistant to change things.
+| Requirement | Detail |
+|---|---|
+| Node.js 20 or newer | For the `npx` bridge |
+| An MCP client | Claude Desktop, Claude Code, Cursor, or anything else that speaks the protocol |
+| Plan | The MCP server and API keys are on the Business plan. Google Ads in the CRM is on every plan, including Free |
+| A CRM Solid account | Holds the ad account connection and the key |
+
+Connecting and using Google Ads inside CRM Solid is available on every plan, including Free, but
+the API key and the MCP server are Business-plan developer surfaces, so the MCP path needs
+Business. [Sign up](https://app.crmsolid.com/register), connect your Google Ads account under
+Insights > Ads > Google Ads, then create an API key at
+[settings/developers](https://app.crmsolid.com/settings/developers) with `ads:read`, plus
+`ads:write` when you want the assistant to change things.
 
 ## Request allowance
 
+MCP access requires Business, and Business has no daily Google Ads cap, so nothing in this guide
+is rationed by the meter. The meter is worth understanding anyway: it is what the `dailyQuota`
+block reports, the same ad account may be used from the panel on a lower plan, and the caching and
+row-count behaviour it describes is what keeps a session cheap.
+
 Google counts API operations per project, so the server meters what reaches Google:
 
-| Plan | Google Ads requests per day |
+| Plan | Google Ads requests per day, in the CRM panel |
 |---|---|
 | Free | 50 |
 | Pro | 500 |
-| Business | Unlimited |
+| Business | Unlimited, and the only plan with MCP access |
 
 Two things keep that further than it sounds. Reports are cached for 15 minutes, so re-reading the
 same window costs nothing, and one breakdown call returns up to 500 rows rather than one row per
-call. A full weekly report for one account costs about six requests. Past the limit the API
-answers HTTP 429 and says when it resets, which is midnight UTC.
+call. A full weekly report for one account costs about six requests. On a capped plan, past the
+limit the API answers HTTP 429 and says when it resets, which is midnight UTC.
 
 ## Why an MCP server rather than a chatbot with a Google Ads plugin
 

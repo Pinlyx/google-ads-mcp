@@ -11,11 +11,13 @@ The assistant does the reading, the sorting and the first pass of judgement. You
 | MCP client | Any client that speaks MCP over stdio |
 | Server | `@crmsolid/mcp-server`, the local bridge to `https://api.crmsolid.com/mcp` |
 | Scope on the key | `ads:read` only. This whole tutorial is reads |
-| CRM Solid account | Free plan is enough: 50 Google Ads requests per day |
+| Plan | Business. The MCP server and API keys are on the Business plan. Google Ads in the CRM is on every plan, including Free |
+| CRM Solid account | Holds the ad account connection and the key |
+| Daily allowance | None, because Business has no Google Ads cap. In the panel the same meter allows 50 requests a day on Free and 500 on Pro |
 | Google Ads account | Connected by OAuth in the panel, see below |
 | Time | About 25 minutes the first time, about 10 minutes weekly after that |
 
-Connect the ad account first, in the CRM Solid panel: Insights > Ads > Google Ads > "Connect Google Ads account". The MCP tools read the account you connect there, so a key with `ads:read` and no connected account gives you tools that work and return nothing useful. Then create the key at [app.crmsolid.com/settings/developers](https://app.crmsolid.com/settings/developers) and add one entry to your client config:
+Connect the ad account first, in the CRM Solid panel: Insights > Ads > Google Ads > "Connect Google Ads account". The MCP tools read the account you connect there, so a key with `ads:read` and no connected account gives you tools that work and return nothing useful. Then create the key at [app.crmsolid.com/settings/developers](https://app.crmsolid.com/settings/developers) and add one entry to your client config. If none of that is in place yet, [01: Connect Google Ads to Your AI Assistant](./01-connect-google-ads-to-your-assistant.md) walks through it.
 
 ```jsonc
 {
@@ -56,11 +58,11 @@ The tool takes no arguments. It answers:
       "lastSyncedAt": "2026-09-15T07:55:03Z"
     }
   ],
-  "dailyQuota": { "used": 0, "limit": 50, "remaining": 50, "unlimited": false }
+  "dailyQuota": { "used": 0, "limit": null, "remaining": null, "unlimited": true }
 }
 ```
 
-Two fields decide the rest of the session. `customerId` is required by every other Google Ads tool, digits only. `dailyQuota` is today's allowance: `limit` and `remaining` are `null` and `unlimited` is `true` on a Business plan.
+Two fields decide the rest of the session. `customerId` is required by every other Google Ads tool, digits only. `dailyQuota` is the daily meter, and that is the shape it takes on Business, the plan the MCP server requires: `limit` and `remaining` come back as `null`, `unlimited` is `true`, and `used` is reported as `0` whatever you have actually spent, because the status call returns the unlimited answer without reading the counter. On a capped plan the same block carries real numbers: `limit` 50 on Free or 500 on Pro, `remaining` counting down, and `unlimited` false.
 
 This call never reaches Google. It reads the workspace's own connection records and a counter, so it costs nothing against the allowance. Run it as often as you like.
 
@@ -80,11 +82,11 @@ The `jq` twice is not a typo. The envelope carries the payload as a JSON string 
 {"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"{\"count\":1,\"accounts\":[...]}"}],"isError":false}}
 ```
 
-**Verify:** you have a `customerId` of digits only, and `dailyQuota` shows a number you can plan against. A JSON-RPC error with code `-32002` and the text `Tool 'crm_list_google_ads_accounts' requires scope 'ads:read'` means the key is missing the scope. Grant it, then restart the client so the bridge picks the key up again.
+**Verify:** you have a `customerId` of digits only, and `dailyQuota` reads `unlimited: true`, which is what Business returns. A JSON-RPC error with code `-32002` and the text `Tool 'crm_list_google_ads_accounts' requires scope 'ads:read'` means the key is missing the scope. Grant it, then restart the client so the bridge picks the key up again.
 
 ## Step 2: Pull the search terms in one call
 
-One call covers the whole account. Ask for more than you think you need, because a second call costs another request against the allowance and a narrower one rarely answers the follow-up question.
+One call covers the whole account. Ask for more than you think you need, because a second call is another request against Google and a narrower one rarely answers the follow-up question.
 
 ```text
 Call crm_google_ads_breakdown with customerId 4783920156, level "search_terms"
@@ -233,11 +235,13 @@ keyword's matchType, status, cost and conversions.
 
 **Verify:** every term you plan to add as a keyword is absent from the keywords list, and every term you plan to exclude is absent from the converting set. Those two checks catch the two ways this loop hurts an account.
 
-## Staying inside the daily request allowance
+## Keeping the pass cheap
 
-The allowance is per workspace per day: 50 requests on the Free plan, 500 on Pro, unlimited on Business. Only requests that actually reach Google count, and that fact is what makes 50 workable.
+MCP access requires Business, and Business has no daily Google Ads cap, so nothing in this pass is rationed. The meter is still worth knowing, for three reasons: it is what the `dailyQuota` block reports, the same ad account may be used from the panel on a lower plan, where the allowance is 50 requests a day on Free and 500 on Pro, and the behaviour below is what separates a four-request session from a forty-request one.
 
-**What is free, and what costs one.** `crm_list_google_ads_accounts` reads connection records and a counter, so it never reaches Google and never costs a request. Each of `crm_google_ads_summary`, `crm_google_ads_campaigns`, `crm_google_ads_breakdown` and `crm_google_ads_campaign_settings` costs one request when it has to go to Google, and a report that spans several pages of results still costs exactly one.
+The meter is per workspace per day, and only requests that actually reach Google count. That fact is what makes 50 workable for a panel user, and it is what keeps an MCP session cheap.
+
+**What is free, and what costs one.** `crm_list_google_ads_accounts` reads connection records and the meter, so it never reaches Google and never costs a request. Each of `crm_google_ads_summary`, `crm_google_ads_campaigns`, `crm_google_ads_breakdown` and `crm_google_ads_campaign_settings` costs one request when it has to go to Google, and a report that spans several pages of results still costs exactly one.
 
 **The 15 minute cache.** Report results are cached for 15 minutes, keyed by account, level, campaign filter and range. Repeat the identical call inside that window and you get the same rows for free. Change any part of the key and it is a new call: `LAST_7_DAYS` and `LAST_30_DAYS` are two entries, and one campaign filter is a different entry from no filter.
 
@@ -245,7 +249,7 @@ The allowance is per workspace per day: 50 requests on the Free plan, 500 on Pro
 
 **Any write clears the cache for that account.** Changing a status, a budget or a bidding strategy invalidates every cached report for that account, so the next read is a fresh request. That matters more in the write loop than here, and it is covered in [03: Let an AI Pause Campaigns and Move Budget, Safely](./03-pause-and-rebudget-safely.md).
 
-A full pass of this tutorial, costed on a Free plan:
+A full pass of this tutorial, counted in requests that reach Google:
 
 | Call | Requests |
 |---|---|
@@ -256,9 +260,9 @@ A full pass of this tutorial, costed on a Free plan:
 | `crm_google_ads_breakdown`, keywords, LAST_30_DAYS | 1 |
 | Total | 4 |
 
-Four of fifty, and a re-run inside 15 minutes is zero. The way people actually exhaust the allowance is a loop: an assistant told to "check each campaign" calls the breakdown once per campaign, once per window, and spends forty requests before it has said anything. Give it the call you want made, with the arguments you want, and ask it to report before it calls anything again.
+Four requests for the whole pass, and a re-run inside 15 minutes is zero. Four also sits well inside the Free-plan panel cap of fifty, for anyone who works the same account from there. What actually runs a session up is a loop: an assistant told to "check each campaign" calls the breakdown once per campaign, once per window, and spends forty requests before it has said anything. Give it the call you want made, with the arguments you want, and ask it to report before it calls anything again. That discipline is worth keeping on Business too, where nothing stops the loop on your behalf.
 
-When the allowance is spent, the API answers HTTP 429 and the message says the limit resets at midnight UTC. Through MCP the same limit comes back as a tool error rather than a transport error, with the text `Daily Google Ads limit reached (50 requests). It resets at midnight UTC, or upgrade your plan for more.` Do not retry it in a loop. Nothing changes until midnight UTC.
+On a capped plan, when the allowance is spent, the API answers HTTP 429 and the message says the limit resets at midnight UTC. Through MCP the same limit comes back as a tool error rather than a transport error, with the text `Daily Google Ads limit reached (50 requests). It resets at midnight UTC, or upgrade your plan for more.` on a Free-plan workspace. Do not retry it in a loop. Nothing changes until midnight UTC.
 
 ## The saved prompt
 
@@ -268,7 +272,8 @@ Paste this into your client as a saved prompt or a slash command. It is the whol
 Run the wasted spend pass on Google Ads.
 
 1. Call crm_list_google_ads_accounts. Report the customerId, the currency and
-   the remaining daily allowance. Stop if remaining is under 5.
+   the dailyQuota block. If unlimited is false and remaining is under 5, stop
+   and say so instead of continuing.
 2. Call crm_google_ads_breakdown once: level "search_terms",
    range "LAST_30_DAYS", no campaignId. Report the row count and total cost.
 3. Table of every row with conversions 0, sorted by cost, highest first, with
@@ -294,8 +299,8 @@ it, and stop there. Call no write tool.
 | `Google Ads account is not connected for this user.` | The `customerId` is not connected in this workspace, or has extra characters | Re-read `customerId` from `crm_list_google_ads_accounts`, digits only |
 | `count` is exactly 500 | The report was truncated at the row cap | Split the pass by `campaignId`, or shorten the range |
 | CTR reported as a fraction of a percent | `ctr` is a ratio and was printed as a percentage | Put the conversion rule in the prompt, as in step 3 |
-| Allowance drains in one session | The assistant called the breakdown once per campaign | Name the exact calls in the prompt, as in the saved prompt |
-| `Daily Google Ads limit reached` mid-pass | Today's allowance is spent | Wait for midnight UTC or upgrade. Repeating identical calls inside 15 minutes is free, so re-read what you already pulled |
+| Request count climbs fast in one session | The assistant called the breakdown once per campaign | Name the exact calls in the prompt, as in the saved prompt |
+| `Daily Google Ads limit reached` mid-pass | Today's allowance is spent, which happens on Free or Pro and never on Business | Wait for midnight UTC or upgrade. Repeating identical calls inside 15 minutes is free, so re-read what you already pulled |
 | The assistant offers to add the negatives for you | No such tool exists on this server | Reject it. The list is produced here, the exclusion is added in Google Ads or the campaign builder |
 | Terms you excluded last month appear again | The exclusion was added at ad group level and the term matched in another ad group | Check `status` on the row: `NONE` means nothing excludes it anywhere |
 
@@ -308,7 +313,7 @@ Then raise the cost floor in step 4 from 25 to 50 and count how many rows surviv
 ## Related reading
 
 - [03: Let an AI Pause Campaigns and Move Budget, Safely](./03-pause-and-rebudget-safely.md), the write loop, with confirmation and read-back
+- [06: Scopes, Quotas and Safety for a Google Ads MCP Server](./06-scopes-quotas-and-safety.md)
 - [Tool reference](../reference/tools.md): every argument, default and scope on this surface
-- [docs.crmsolid.com/integrations/mcp/](https://docs.crmsolid.com/integrations/mcp/)
-- [@crmsolid/mcp-server on npm](https://www.npmjs.com/package/@crmsolid/mcp-server)
+- [docs.crmsolid.com/integrations/mcp/](https://docs.crmsolid.com/integrations/mcp/) and [@crmsolid/mcp-server on npm](https://www.npmjs.com/package/@crmsolid/mcp-server)
 - [The MCP specification](https://modelcontextprotocol.io)

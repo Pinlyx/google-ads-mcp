@@ -48,15 +48,15 @@ curl -s https://api.crmsolid.com/mcp \
     { "customerId": "5093114872", "name": "CRM Solid TR", "currency": "TRY", "timeZone": "Europe/Istanbul",
       "status": "Connected", "connectedAt": "2026-04-02T09:14:00Z", "lastSyncedAt": "2026-09-15T07:02:11Z" }
   ],
-  "dailyQuota": { "used": 4, "limit": 50, "remaining": 46, "unlimited": false }
+  "dailyQuota": { "used": 0, "limit": null, "remaining": null, "unlimited": true }
 }
 ```
 
-**Verify:** you have a digits-only `customerId`, and `dailyQuota.remaining` is at least 8. That call reads the CRM database and never reaches Google, so it costs nothing and you can run it as often as you like.
+**Verify:** you have a digits-only `customerId`, and `dailyQuota` reads `unlimited: true`, which is what Business returns. That call reads the CRM database and never reaches Google, so it costs nothing and you can run it as often as you like.
 
 ## The six calls, and what the report costs
 
-Only requests that actually reach Google count: 50 a day on the free plan, 500 on Pro, unlimited on Business. Reports are cached for 15 minutes, so a re-read inside that window is free.
+Only requests that actually reach Google count. MCP access requires Business, and Business has no daily Google Ads cap, so the counts below are the price of the report rather than a ration. They are worth knowing anyway: they are what the `dailyQuota` block meters for anyone working the same account from the panel, where the allowance is 50 requests a day on Free and 500 on Pro, and they are what a looping assistant multiplies. Reports are cached for 15 minutes, so a re-read inside that window is free.
 
 Every call from row 1 down also takes `customerId`, which is required and omitted from the table for width.
 
@@ -69,13 +69,13 @@ Every call from row 1 down also takes `customerId`, which is required and omitte
 | 4 | `crm_google_ads_breakdown` | `level: "ad_groups", range: "LAST_7_DAYS"` | 1 |
 | 5 | `crm_google_ads_breakdown` | `level: "keywords", range: "LAST_7_DAYS"` | 1 |
 | 6 | `crm_google_ads_breakdown` | `level: "search_terms", range: "LAST_7_DAYS"` | 1 |
-| | **Total for one account** | | **6 of 50** |
+| | **Total for one account** | | **6** |
 
 Optional extras, priced the same way: `crm_google_ads_campaigns` at `LAST_14_DAYS` for per-campaign week over week (1), a breakdown narrowed with `campaignId` (1 each, it is a different cache key), and `crm_google_ads_campaign_settings` per campaign (1 each, and this one is never cached). A second ad account costs a second set.
 
-Six of fifty means a free plan can produce this report eight times in a day, which is more headroom than it sounds like until somebody loops the assistant. One thing does reset the cache: any write against that account, including a budget change made in the panel, invalidates every cached report for it, so the next read pays full price.
+Six requests is a cheap report. It is cheap enough to run several times a day without thinking about it, and cheap enough that even the Free-plan panel cap of fifty would carry it eight times. What stops any of that being true is somebody looping the assistant. One thing does reset the cache: any write against that account, including a budget change made in the panel, invalidates every cached report for it, so the next read pays full price.
 
-**Verify:** after running all six, `crm_list_google_ads_accounts` shows `dailyQuota.used` risen by exactly 6. If it rose by more, something is calling in a loop.
+**Verify:** your client's tool call log shows exactly six calls that reached Google, one per row above. `dailyQuota.used` will not help you here, because on Business it comes back as `0` whatever you have spent. If the log shows more than six, something is calling in a loop.
 
 ## Getting the two windows right
 

@@ -17,7 +17,8 @@ name, the environment variable and the tool names change.
 | Node.js 20 or newer | The bridge is ESM and declares `node >= 20` | `node --version` |
 | An MCP client | Claude Desktop, Claude Code and Cursor are covered below | Any recent build |
 | A Google Ads account you can sign into | The OAuth consent is granted by its owner | You can open ads.google.com |
-| A CRM Solid account | Holds the connection and the API key. The free plan is enough | Created in step 1 |
+| A CRM Solid account | Holds the connection and the API key | Created in step 1 |
+| The Business plan | The MCP server and API keys are on the Business plan. Google Ads in the CRM is on every plan, including Free | Your billing page |
 | `curl` | Verifies the server without a client in the way | `curl --version` |
 
 Time: about 10 minutes, most of it waiting for a client to restart.
@@ -42,6 +43,10 @@ Google account you used has no ad account attached to it; sign in with the one t
 Open [app.crmsolid.com/settings/developers](https://app.crmsolid.com/settings/developers) and
 create a key. Grant it `ads:read` to start. Add `ads:write` only when you reach step 6 of this
 tutorial, and prefer a second key for that rather than widening this one.
+
+API keys and the MCP server are Business-plan features, so the page hands out no key on Free or
+Pro. Step 1 is different: connecting the ad account and working with it in the panel is open on
+every plan, including Free. It is the developer surfaces that are not.
 
 The value starts with `csk_live_` and is shown once. Store it where you keep other secrets. Scopes
 are per key, so a key that can only read is a genuinely different key, not a setting you can flip
@@ -93,7 +98,8 @@ curl -s https://api.crmsolid.com/mcp \
 ```
 
 The result contains one entry per connected account with `customerId`, `name`, `currency` and
-`timeZone`, plus a `dailyQuota` block telling you how many requests you have left today.
+`timeZone`, plus a `dailyQuota` block reporting the daily meter. On Business, the plan the MCP
+server requires, that block says there is no cap.
 
 ```json
 {
@@ -101,7 +107,7 @@ The result contains one entry per connected account with `customerId`, `name`, `
   "accounts": [
     { "customerId": "4953595856", "name": "Acme Ltd", "currency": "GBP", "timeZone": "Europe/London" }
   ],
-  "dailyQuota": { "used": 0, "limit": 50, "remaining": 50, "unlimited": false }
+  "dailyQuota": { "used": 0, "limit": null, "remaining": null, "unlimited": true }
 }
 ```
 
@@ -158,7 +164,7 @@ says so.
 
 Now use words instead of JSON. Good first questions:
 
-- "List my Google Ads accounts and tell me how many requests I have left today."
+- "List my Google Ads accounts and tell me what the daily quota block says."
 - "For customer 4953595856, what did we spend in the last 7 days, and what were the clicks and
   conversions?"
 - "Show me the campaigns for that account sorted by spend, with their status."
@@ -199,13 +205,17 @@ ended back where it started.
 
 ## What each tool costs you
 
-The free plan allows 50 Google Ads requests a day, Pro 500, Business unlimited. Only calls that
-reach Google count, and reports are cached for 15 minutes, so asking the same question twice in a
-row costs one request, not two. A breakdown call returns up to 500 rows, so pulling every search
-term for a week is a single request, not one per term.
+MCP access requires Business, and Business has no daily Google Ads cap, so the counts below are
+about keeping a session cheap rather than about a ceiling you are working towards. The meter is
+still worth reading: in the CRM panel it allows 50 Google Ads requests a day on Free and 500 on
+Pro, and the same ad account may be worked from there by somebody on a lower plan.
 
-When the allowance runs out the server answers HTTP 429 with a message naming the limit and
-saying it resets at midnight UTC. Nothing breaks; the next day starts fresh.
+Only calls that reach Google count, and reports are cached for 15 minutes, so asking the same
+question twice in a row costs one request, not two. A breakdown call returns up to 500 rows, so
+pulling every search term for a week is a single request, not one per term.
+
+On a capped plan, when the allowance runs out the server answers HTTP 429 with a message naming
+the limit and saying it resets at midnight UTC. Nothing breaks; the next day starts fresh.
 
 ## Where to go next
 

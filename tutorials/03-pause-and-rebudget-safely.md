@@ -12,11 +12,12 @@ Advanced level. You should already be comfortable with the read tools and with y
 |---|---|
 | Scopes on the key | `ads:read` and `ads:write`. Reads alone cannot change anything |
 | Connected account | Google Ads connected by OAuth in the panel: Insights > Ads > Google Ads |
-| Plan allowance | 50 Google Ads requests a day on Free, 500 on Pro, unlimited on Business |
+| Plan | Business. The MCP server and API keys are on the Business plan. Google Ads in the CRM is on every plan, including Free |
+| Plan allowance | None on Business. In the panel the same meter allows 50 Google Ads requests a day on Free and 500 on Pro |
 | Client behaviour | A client that asks before each tool call. Approvals are the point of the loop |
 | Blast radius | Writes hit a live ad account immediately, and a removal cannot be undone from here |
 
-Run two server entries, not one. The research entry cannot write even if a prompt tells it to:
+Run two server entries, not one, and if the server and key are not in place yet, [01: Connect Google Ads to Your AI Assistant](./01-connect-google-ads-to-your-assistant.md) covers that part. The research entry cannot write even if a prompt tells it to:
 
 ```jsonc
 {
@@ -100,7 +101,7 @@ curl -s https://api.crmsolid.com/mcp \
   | jq -r '.result.content[0].text' | jq .
 ```
 
-This call is not cached. Every settings read costs one request against the daily allowance, which is the right trade: a cached settings read is exactly the thing you do not want before a write.
+This call is not cached. Every settings read costs one request against Google, which is the right trade: a cached settings read is exactly the thing you do not want before a write.
 
 **Verify:** the table shows both campaigns, the currency is the one you expect, and the daily budgets match what you see in the Google Ads interface. If a number disagrees with the interface, stop and find out why before writing anything.
 
@@ -160,7 +161,7 @@ before making the next one.
 { "updated": true, "level": "campaigns", "entityId": "20194857363", "status": "paused" }
 ```
 
-The same call raw, which is the fastest way to prove a write path works without involving a model:
+The same call raw, which is the fastest way to prove a write path works without involving a model. It is a real write, so put your own ids in it and mean them:
 
 ```bash
 curl -s https://api.crmsolid.com/mcp \
@@ -193,7 +194,7 @@ A write returns a confirmation of what changed, never a data feed. No tool on th
 
 `dailyBudget` is a plain number in the account currency, rounded to a whole cent before it reaches Google. Zero or less is refused with `Daily budget must be greater than zero.`
 
-The budget write costs two requests against the daily allowance, not one: the amount lives on a budget resource rather than on the campaign, so the tool looks that resource up and then mutates it. A status change costs one, and so does a bidding change.
+The budget write costs two requests, not one: the amount lives on a budget resource rather than on the campaign, so the tool looks that resource up and then mutates it. A status change costs one, and so does a bidding change.
 
 **Verify:** each result says `"updated": true` and echoes the id you meant. If the assistant reports success without showing you the result object, ask for the raw result. "Done" is not evidence.
 
@@ -246,13 +247,15 @@ Google Ads interface.
 
 ## What a 429 means in the middle of a workflow
 
+MCP access requires Business, and Business has no daily Google Ads cap, so this is a condition you meet on Free or Pro rather than on the plan this tutorial assumes. Know the shape anyway: the same ad account may be worked from the panel on a lower plan, and a half-applied change set looks the same whoever caused it.
+
 When the daily allowance is spent, the API answers HTTP 429 and says so: `Daily Google Ads limit reached (50 requests). It resets at midnight UTC, or upgrade your plan for more.` Through MCP, the same condition arrives as a tool result with `isError` set to true and that message as its text, not as a transport error.
 
-That distinction matters because an assistant can read a tool error and carry on. In a read session the worst case is a confused summary. In a write session the worst case is a half-applied change set: the pause landed, the budget did not, and the account is now running one converting campaign on a budget that was sized for a different plan.
+That distinction matters because an assistant can read a tool error and carry on. In a read session the worst case is a confused summary. In a write session the worst case is a half-applied change set: the pause landed, the budget did not, and the account is now running its converting campaign on a budget that was sized for a different set of campaigns.
 
 Three rules follow.
 
-Check the allowance before you start writing. `crm_list_google_ads_accounts` returns `dailyQuota` and costs nothing. A rebudget pass like this one needs about seven requests: two settings reads, one status write, two for the budget write, two settings reads to verify.
+Know what the pass costs before you start writing. `crm_list_google_ads_accounts` returns `dailyQuota` and costs nothing, and on Business that block reads `unlimited: true`. A rebudget pass like this one needs about seven requests: two settings reads, one status write, two for the budget write, two settings reads to verify.
 
 Never retry a 429 in a loop. Nothing changes until midnight UTC. A deployment-wide variant exists as well, with the text `Google Ads is busy for today on this plan. Upgrade for uninterrupted access, or try again tomorrow.`
 
@@ -262,7 +265,7 @@ Write down what landed. Ask the assistant for a list of the writes that returned
 
 **The wrong account was selected.** A workspace can have several connected customer ids, and nothing in a pause or a budget call looks wrong when the id belongs to the other account. There is no error to catch: the call succeeds against the wrong account. The guard is the step 1 read, which shows you the campaign name, and a habit of naming the account in the confirmation sentence. An id that is not connected at all fails loudly with `Google Ads account is not connected for this user.`
 
-**The budget was entered in the wrong currency.** `dailyBudget` is a plain number in the account currency. There is no currency argument, no conversion, and no validation beyond "greater than zero". Type 75 into a TRY account intending 75 EUR and the campaign gets roughly a thirtieth of the budget you meant, silently and immediately. Read `budgetCurrency` in step 1 and repeat it in every row of the step 2 table.
+**The budget was entered in the wrong currency.** `dailyBudget` is a plain number in the account currency. There is no currency argument, no conversion, and no validation beyond "greater than zero". Send 75 to an account that bills in a currency worth far less than the one you were thinking in, and the campaign gets a fraction of the budget you meant, silently and immediately. Read `budgetCurrency` in step 1 and repeat it in every row of the step 2 table.
 
 **The budget is shared.** The amount lives on a budget resource, and Google lets several campaigns share one. The tool changes the budget attached to the campaign you name, so if that budget is shared, every campaign on it changes with it. Check in the Google Ads interface whether the budget is shared before you move money with this tool.
 
@@ -280,7 +283,7 @@ There is no tool that invents a campaign. Campaigns are built in the CRM Solid p
 - `crm_dry_run_ad_draft` asks the ad network to validate the draft and returns the network's own field-level problems. Nothing is created.
 - `crm_publish_ad_draft` publishes a draft that is in status Approved. A draft that has not been approved is refused. What it creates is created paused, so nothing spends until a person enables it with `crm_set_google_ads_status`.
 
-That is the same guarded loop in a different shape: validate, approve, publish inert, enable deliberately.
+That is the same guarded loop in a different shape: validate, approve, publish inert, enable deliberately. [04: Publish a Google Ads Campaign From Your Assistant, With a Human Approval Step](./04-publish-a-campaign-with-approval.md) walks that path in full.
 
 ## Troubleshooting
 
@@ -292,7 +295,7 @@ That is the same guarded loop in a different shape: validate, approve, publish i
 | `Campaign not found in this account.` | The campaign id belongs to another account | Re-read ids from `crm_google_ads_campaigns` for this `customerId` |
 | An ad or keyword write fails as not found | `entityId` was a bare id without `{adGroupId}~` | Rebuild it from the breakdown row, both halves, one tilde |
 | `Daily budget must be greater than zero.` | Zero, a negative number, or a number sent as a string | Send a positive number in the account currency |
-| `Daily Google Ads limit reached` after some writes landed | Allowance spent mid-workflow | Finish the remaining changes by hand, then resume after midnight UTC |
+| `Daily Google Ads limit reached` after some writes landed | Allowance spent mid-workflow, which happens on Free or Pro and never on Business | Finish the remaining changes by hand, then resume after midnight UTC |
 | Status reads `PAUSED` but you sent `paused` | Google reports upper case, the tool takes lower case | Nothing to fix |
 | The change does not show in a report | The report was cached before the write, or the report level filters removed rows | Read the settings back rather than a report |
 
@@ -305,7 +308,8 @@ Then try the same writes through the `--read-only` entry and watch them fail bef
 ## Related reading
 
 - [02: Find Wasted Google Ads Spend With an AI Assistant](./02-find-wasted-google-ads-spend.md), the read loop that produces the decisions this one applies
+- [04: Publish a Google Ads Campaign From Your Assistant, With a Human Approval Step](./04-publish-a-campaign-with-approval.md)
+- [06: Scopes, Quotas and Safety for a Google Ads MCP Server](./06-scopes-quotas-and-safety.md)
 - [Tool reference](../reference/tools.md): every argument, default, scope and annotation on this surface
-- [docs.crmsolid.com/integrations/mcp/](https://docs.crmsolid.com/integrations/mcp/)
-- [@crmsolid/mcp-server on npm](https://www.npmjs.com/package/@crmsolid/mcp-server)
+- [docs.crmsolid.com/integrations/mcp/](https://docs.crmsolid.com/integrations/mcp/) and [@crmsolid/mcp-server on npm](https://www.npmjs.com/package/@crmsolid/mcp-server)
 - [The MCP specification](https://modelcontextprotocol.io)

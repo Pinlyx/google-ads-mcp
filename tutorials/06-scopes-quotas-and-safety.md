@@ -70,11 +70,16 @@ the tool is not available, not that the campaign was paused.
 The Google Ads API counts operations per Cloud project, not per customer, so every workspace on a
 deployment draws from the same daily pool. The server meters what reaches Google:
 
-| Plan | Requests per day |
+| Plan | Requests per day, in the CRM panel |
 |---|---|
 | Free | 50 |
 | Pro | 500 |
 | Business | Unlimited |
+
+MCP access requires Business, and Business has no daily cap, so a session like the ones in this
+guide is not rationed by the meter. The meter still belongs in this checklist: it is what the
+`dailyQuota` block reports, the same ad account may be used from the panel on a lower plan, and
+the behaviour below is what decides whether a session is cheap or wasteful.
 
 What counts and what does not:
 
@@ -82,15 +87,17 @@ What counts and what does not:
   and date range.
 - One breakdown call returns up to 500 rows. Pulling every search term for a week is one request.
 - Writes count, including a status change that turns out to be a no-op.
-- Over the limit the API answers HTTP 429 with a message naming the limit and saying it resets at
-  midnight UTC.
+- Over the limit, on a capped plan, the API answers HTTP 429 with a message naming the limit and
+  saying it resets at midnight UTC.
 
-This is also a safety feature, not only a cost control. An assistant stuck in a loop spends an
-allowance and stops, instead of hammering the account until Google returns RESOURCE_EXHAUSTED for
-everyone on the deployment.
+On a capped plan this is also a safety feature, not only a cost control. An assistant stuck in a
+loop spends an allowance and stops, instead of hammering the account until Google returns
+RESOURCE_EXHAUSTED for everyone on the deployment. On Business nothing stops that loop on your
+behalf, so the controls in the rest of this tutorial are doing that work alone.
 
-**Verify:** call `crm_list_google_ads_accounts` and read the `dailyQuota` block. Run a report,
-call it again, and watch `remaining` fall by the number of uncached reads you made.
+**Verify:** call `crm_list_google_ads_accounts` and read the `dailyQuota` block. On Business it
+comes back with `unlimited` true, `limit` and `remaining` null, and `used` at `0` whatever you
+have spent, so count the calls in your client's tool call log rather than watching a counter.
 
 ## Layer 4: the guarded write loop
 
@@ -188,7 +195,7 @@ Copy this into your runbook:
 - [ ] System prompt requires read, state, confirm, change, verify
 - [ ] `removed` never appears in an automated workflow
 - [ ] Tool results are treated as data, stated explicitly in the prompt
-- [ ] Daily allowance understood, and `dailyQuota` checked before long analyses
+- [ ] Request cost of a session understood, and the tool call log watched for loops
 - [ ] Google change history reviewed weekly against your own transcripts
 - [ ] Keys rotated when someone leaves, and revoked the same day
 

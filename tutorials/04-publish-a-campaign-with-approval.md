@@ -33,6 +33,8 @@ Two properties make the shape above defensible: the publish tool refuses any dra
 
 You need a CRM Solid account with a connected Google Ads account, and an API key from [settings/developers](https://app.crmsolid.com/settings/developers) carrying both `ads:read` and `ads:write`. Keys are shown once, so store it before you close the dialog.
 
+Connecting and using Google Ads inside CRM Solid is available on every plan, including Free, but the API key and the MCP server are Business-plan developer surfaces, so the MCP path needs Business. Ads Studio, where the draft in this tutorial is built and approved, is on the Business plan as well.
+
 ```jsonc
 {
   "mcpServers": {
@@ -155,7 +157,7 @@ There are two kinds of entry in `issues`, and telling them apart saves confusion
 | The budget amount is too low | Below the account currency's minimum daily budget | Builder, Budget |
 | The customer account is not enabled | Billing is not set up on the ad account | Google Ads, not here |
 
-The last row is the class of problem these tools cannot solve. Payment methods, monthly invoicing and account creation are not exposed here, and the Google Ads API does not offer the first two at all. Fix, then run the dry run again. Each attempt costs one request against your daily allowance, so read the whole issue list before editing rather than fixing one line at a time.
+The last row is the class of problem these tools cannot solve. Payment methods, monthly invoicing and account creation are not exposed here, and the Google Ads API does not offer the first two at all. Fix, then run the dry run again. Each attempt costs one request against Google, so read the whole issue list before editing rather than fixing one line at a time.
 
 **Verify:** a repeat dry run returns `validated: true` with an empty `issues` array.
 
@@ -269,7 +271,7 @@ that message. Never say a campaign is live. State the status you read back.
 
 ## What the whole path costs
 
-Only requests that reach Google count against the daily allowance, which is 50 a day on the free plan, 500 on Pro and unlimited on Business.
+Only requests that reach Google count against the meter. MCP access requires Business, and Business has no daily Google Ads cap, so the table below prices a launch rather than measuring it against a ceiling. In the CRM panel the same meter allows 50 requests a day on Free and 500 on Pro.
 
 | Step | Tool | Requests |
 |---|---|---|
@@ -279,7 +281,7 @@ Only requests that reach Google count against the daily allowance, which is 50 a
 | Confirm settings, before and after enabling | `crm_google_ads_campaign_settings` | 1 each, never cached |
 | Enable | `crm_set_google_ads_status` | 1 |
 
-A clean launch costs five requests, plus one for every extra dry run. Over the limit the API answers HTTP 429 with a message saying the limit was reached and that it resets at midnight UTC.
+A clean launch costs five requests, plus one for every extra dry run. On a capped plan, over the limit the API answers HTTP 429 with a message saying the limit was reached and that it resets at midnight UTC.
 
 ## Failure modes worth designing against
 
