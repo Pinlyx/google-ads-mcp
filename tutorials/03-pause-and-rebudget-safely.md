@@ -303,7 +303,7 @@ That is the same guarded loop in a different shape: validate, approve, publish i
 
 Run the loop end to end on something harmless: take a paused campaign, change its daily budget by one unit of the account currency, verify, then change it back. Count your requests as you go and compare against the seven the worked example needs. You will learn where your client asks for approval, what its dialog shows and what it hides.
 
-Then try the same writes through the `--read-only` entry and watch them fail before any network call, with the message `This session was started with --read-only, which allows only tools that CRM Solid marks as read-only.` That is what a research session should feel like when a prompt wanders.
+Then try the same writes through the `--read-only` entry and watch them fail before any network call, with the message `This session was started with --read-only, which allows only tools that Pinlyx marks as read-only.` That is what a research session should feel like when a prompt wanders.
 
 ## Related reading
 
