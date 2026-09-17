@@ -25,7 +25,7 @@ Time: about 10 minutes, most of it waiting for a client to restart.
 
 ## Step 1: Connect your Google Ads account
 
-Sign in at [app.crmsolid.com](https://app.crmsolid.com), then open **Insights > Ads > Google Ads**
+Sign in at [app.pinlyx.com](https://app.pinlyx.com), then open **Insights > Ads > Google Ads**
 and press **Connect Google Ads account**. Google asks you to sign in, may ask for a passkey or
 other second factor, and then shows the consent screen listing one permission: see, edit, create
 and delete your Google Ads accounts and data. That single permission is the only scope the Google
@@ -40,7 +40,7 @@ Google account you used has no ad account attached to it; sign in with the one t
 
 ## Step 2: Create an API key
 
-Open [app.crmsolid.com/settings/developers](https://app.crmsolid.com/settings/developers) and
+Open [app.pinlyx.com/settings/developers](https://app.pinlyx.com/settings/developers) and
 create a key. Grant it `ads:read` to start. Add `ads:write` only when you reach step 6 of this
 tutorial, and prefer a second key for that rather than widening this one.
 

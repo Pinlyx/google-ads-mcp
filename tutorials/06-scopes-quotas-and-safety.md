@@ -36,7 +36,7 @@ Rules that have earned their place:
    revoke it and make another.
 4. **Revoke on role change.** A key belongs to a workspace, not to a laptop.
 
-**Verify:** open [settings/developers](https://app.crmsolid.com/settings/developers) and read your
+**Verify:** open [settings/developers](https://app.pinlyx.com/settings/developers) and read your
 key list out loud. If you cannot say what each key is for in one sentence, delete it.
 
 ## Layer 2: read-only sessions

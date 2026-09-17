@@ -17,7 +17,7 @@ The assistant does the reading, the sorting and the first pass of judgement. You
 | Google Ads account | Connected by OAuth in the panel, see below |
 | Time | About 25 minutes the first time, about 10 minutes weekly after that |
 
-Connect the ad account first, in the Pinlyx panel: Insights > Ads > Google Ads > "Connect Google Ads account". The MCP tools read the account you connect there, so a key with `ads:read` and no connected account gives you tools that work and return nothing useful. Then create the key at [app.crmsolid.com/settings/developers](https://app.crmsolid.com/settings/developers) and add one entry to your client config. If none of that is in place yet, [01: Connect Google Ads to Your AI Assistant](./01-connect-google-ads-to-your-assistant.md) walks through it.
+Connect the ad account first, in the Pinlyx panel: Insights > Ads > Google Ads > "Connect Google Ads account". The MCP tools read the account you connect there, so a key with `ads:read` and no connected account gives you tools that work and return nothing useful. Then create the key at [app.pinlyx.com/settings/developers](https://app.pinlyx.com/settings/developers) and add one entry to your client config. If none of that is in place yet, [01: Connect Google Ads to Your AI Assistant](./01-connect-google-ads-to-your-assistant.md) walks through it.
 
 ```jsonc
 {
@@ -295,7 +295,7 @@ it, and stop there. Call no write tool.
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `Tool 'crm_google_ads_breakdown' requires scope 'ads:read'` | Key lacks the scope | Grant `ads:read` at [settings/developers](https://app.crmsolid.com/settings/developers), then restart the client |
+| `Tool 'crm_google_ads_breakdown' requires scope 'ads:read'` | Key lacks the scope | Grant `ads:read` at [settings/developers](https://app.pinlyx.com/settings/developers), then restart the client |
 | `Google Ads account is not connected for this user.` | The `customerId` is not connected in this workspace, or has extra characters | Re-read `customerId` from `crm_list_google_ads_accounts`, digits only |
 | `count` is exactly 500 | The report was truncated at the row cap | Split the pass by `campaignId`, or shorten the range |
 | CTR reported as a fraction of a percent | `ctr` is a ratio and was printed as a percentage | Put the conversion rule in the prompt, as in step 3 |

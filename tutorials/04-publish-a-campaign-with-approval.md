@@ -21,7 +21,7 @@ Start with [connect Google Ads to your assistant](./01-connect-google-ads-to-you
 
 Two properties make the shape above defensible: the publish tool refuses any draft that is not in status `Approved`, so the approval is not advisory, and the campaign is created paused, so a mistaken publish costs you a cleanup rather than a budget. Each of the four gaps below is a hole somebody will otherwise assume is filled.
 
-**No tool creates or edits a draft over MCP.** `crm_list_ad_drafts` is read-only, and the two write tools take exactly one argument each, a `draftId`. There is no `create_ad_draft`. An assistant cannot invent a campaign and push it at your account, because it has no way to author one. Campaigns are written in Ads Studio, at [app.crmsolid.com/ads-studio](https://app.crmsolid.com/ads-studio), under Insights > Ads > Ads Studio.
+**No tool creates or edits a draft over MCP.** `crm_list_ad_drafts` is read-only, and the two write tools take exactly one argument each, a `draftId`. There is no `create_ad_draft`. An assistant cannot invent a campaign and push it at your account, because it has no way to author one. Campaigns are written in Ads Studio, at [app.pinlyx.com/ads-studio](https://app.pinlyx.com/ads-studio), under Insights > Ads > Ads Studio.
 
 **Approval is not an MCP tool either.** Submit and approve exist only in the panel. That is the point: the reviewer is a person looking at a rendered campaign, not a model deciding it looks fine. Approval is also fragile on purpose. Editing an approved draft sends it back to `Draft` and the approval has to be redone, so nobody can sign off on one campaign and publish a different one.
 
@@ -31,7 +31,7 @@ Two properties make the shape above defensible: the publish tool refuses any dra
 
 ## Before you start
 
-You need a Pinlyx account with a connected Google Ads account, and an API key from [settings/developers](https://app.crmsolid.com/settings/developers) carrying both `ads:read` and `ads:write`. Keys are shown once, so store it before you close the dialog.
+You need a Pinlyx account with a connected Google Ads account, and an API key from [settings/developers](https://app.pinlyx.com/settings/developers) carrying both `ads:read` and `ads:write`. Keys are shown once, so store it before you close the dialog.
 
 Connecting and using Google Ads inside Pinlyx is available on every plan, including Free, but the API key and the MCP server are Business-plan developer surfaces, so the MCP path needs Business. Ads Studio, where the draft in this tutorial is built and approved, is on the Business plan as well.
 

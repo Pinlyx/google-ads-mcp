@@ -92,9 +92,9 @@ workflow needs them, the tutorials say so instead of pretending.
 
 Connecting and using Google Ads inside Pinlyx is available on every plan, including Free, but
 the API key and the MCP server are Business-plan developer surfaces, so the MCP path needs
-Business. [Sign up](https://app.crmsolid.com/register), connect your Google Ads account under
+Business. [Sign up](https://app.pinlyx.com/register), connect your Google Ads account under
 Insights > Ads > Google Ads, then create an API key at
-[settings/developers](https://app.crmsolid.com/settings/developers) with `ads:read`, plus
+[settings/developers](https://app.pinlyx.com/settings/developers) with `ads:read`, plus
 `ads:write` when you want the assistant to change things.
 
 ## Request allowance

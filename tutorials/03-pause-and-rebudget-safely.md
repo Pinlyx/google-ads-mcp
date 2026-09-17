@@ -290,7 +290,7 @@ That is the same guarded loop in a different shape: validate, approve, publish i
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | Write tools are missing from the list | The session is the `--read-only` entry, or the key lacks `ads:write` | Switch to the write entry, then check the key's scopes |
-| `Tool 'crm_update_google_ads_budget' requires scope 'ads:write'` | Key has reads only | Grant `ads:write` at [settings/developers](https://app.crmsolid.com/settings/developers) and restart the client |
+| `Tool 'crm_update_google_ads_budget' requires scope 'ads:write'` | Key has reads only | Grant `ads:write` at [settings/developers](https://app.pinlyx.com/settings/developers) and restart the client |
 | `Google Ads account is not connected for this user.` | Wrong `customerId`, or characters other than digits | Re-read it from `crm_list_google_ads_accounts` |
 | `Campaign not found in this account.` | The campaign id belongs to another account | Re-read ids from `crm_google_ads_campaigns` for this `customerId` |
 | An ad or keyword write fails as not found | `entityId` was a bare id without `{adGroupId}~` | Rebuild it from the breakdown row, both halves, one tilde |
