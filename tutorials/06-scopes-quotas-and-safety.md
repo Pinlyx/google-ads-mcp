@@ -85,7 +85,7 @@ What counts and what does not:
 
 - A report that comes from cache does not count. Reports are cached 15 minutes per account, level
   and date range.
-- One breakdown call returns up to 500 rows. Pulling every search term for a week is one request.
+- One breakdown call returns a page of rows, cursor-paginated for the rest. Pulling every search term for a week is a handful of requests, not one per term.
 - Writes count, including a status change that turns out to be a no-op.
 - Over the limit, on a capped plan, the API answers HTTP 429 with a message naming the limit and
   saying it resets at midnight UTC.

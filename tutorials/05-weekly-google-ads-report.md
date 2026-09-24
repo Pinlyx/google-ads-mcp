@@ -147,7 +147,7 @@ Note what is not in a campaign row: no CTR, no average CPC, and `dailyBudget` is
 }
 ```
 
-A search term has no id of its own, so `id` repeats the term text, and `status` says whether that term is already a keyword or already excluded. At `level: "keywords"` the `matchType` field is populated and `id` is the criterion id. At `level: "ads"` a responsive search ad has no name, so the first headline is used as the label. Every breakdown is capped at 500 rows, ordered by cost descending, which matters for search terms more than anywhere else: on a busy account you are reading the 500 most expensive terms, not all of them. Say that in the report rather than implying the tail was reviewed.
+A search term has no id of its own, so `id` repeats the term text, and `status` says whether that term is already a keyword or already excluded. At `level: "keywords"` the `matchType` field is populated and `id` is the criterion id, and the row also carries Quality Score. At `level: "ads"` a responsive search ad has no name, so the first headline is used as the label. Every breakdown page is ordered by cost descending and cursor-paginated for the rest, which matters for search terms more than anywhere else: on a busy account you are reading the most expensive terms first, page by page, not all of them at once unless you follow every `nextCursor`. Say that in the report rather than implying the tail was reviewed.
 
 **Verify:** the campaign rows sum to the account summary for cost, impressions, clicks and conversions. If they do not, one of the two calls used a different range.
 
@@ -165,13 +165,17 @@ Ranking is where a weekly report earns or loses trust. Four rules cover it.
 
 **Verify:** every entry in your best and worst lists clears the floor you wrote down, and each one shows cost, clicks and conversions next to the label.
 
-## What these tools do not return
+## What this specific report does not pull, and what genuinely still is not available
 
 Say this before your first report, because it decides several rows in the table.
 
-Impression share and lost impression share, quality score, auction insights, and any segment by device, hour of day, geography or demographic are not returned by any tool here. Neither is search volume, keyword difficulty or a planner forecast: there is no keyword planner in this tool set. Per-ad rows exist at `level: "ads"`, but asset level reporting, which headline or description pulled the result, does not.
+The three calls this recipe makes, `crm_google_ads_summary`, `crm_google_ads_campaigns` and `crm_google_ads_breakdown`, do not by themselves return every dimension Google Ads tracks. Impression share is actually in `crm_google_ads_summary` and `crm_google_ads_campaigns` already; Quality Score is in `crm_google_ads_breakdown` at `level: "keywords"`; and a split by device, hour of day, day of week, country, region, city, age, gender or conversion action is a separate call to `crm_google_ads_segments`. None of those are wired into the recipe above by default, so add the call explicitly (and a matching row in the table) if a week's story needs one of them, rather than assuming the dataset already covers it.
 
-All of those live in the Google Ads UI. Export them for the same window and paste them in as a clearly labelled second source, or leave the row reading "not available". Both are honest. Filling the gap with an estimate is not, and an assistant asked for a complete report will produce one if you do not forbid it.
+Two things genuinely are not available from any tool here. Auction insights are gated by Google to allowlisted API projects; `crm_google_ads_auction_insights` answers `feature_not_available` on an account that is not one, and the Auction insights page in the Google Ads UI is the fallback. And per-ad rows exist at `level: "ads"`, `crm_google_ads_assets` reports asset (extension) performance, but neither tells you which specific headline or description pulled the result, only the ad's or asset's aggregate.
+
+Search volume, keyword difficulty and a spend forecast are also outside this recipe's scope, not because no tool returns them, but because they answer a research question rather than a performance one: `crm_google_ads_keyword_ideas` and `crm_google_ads_forecast` are the tools for that, used before a campaign exists or before adding a new ad group, not in a weekly rollup.
+
+For a genuine gap, export from the Google Ads UI for the same window and paste it in as a clearly labelled second source, or leave the row reading "not available". Both are honest. Filling the gap with an estimate is not, and an assistant asked for a complete report will produce one if you do not forbid it.
 
 ## When conversion tracking is thin
 
@@ -202,8 +206,8 @@ clicks, conversions, conversionsValue. Never subtract a ratio. Recompute CTR,
 average CPC and ROAS from the derived totals and say so.
 CTR is returned as a ratio: state it as a percentage and label it.
 For anything not in this dataset, write "not available" and name where it
-lives. Impression share, quality score, device and hour segments, and search
-volume are not available. Do not estimate. Do not use an industry benchmark.
+lives. Auction insights and per-headline/description asset attribution are
+not returned by any tool. Do not estimate. Do not use an industry benchmark.
 
 STEP 2. Stop. Wait for me to confirm the table.
 
@@ -241,7 +245,7 @@ Every figure below is fictional and exists to show the shape and the internal co
 | Conversion value | 61,300 | 48,600 | +26.1% | same pair, derived: 109,900 minus 61,300 |
 | Cost per conversion | 205.38 | 215.57 | -4.7% | recomputed per window: cost / conversions |
 | ROAS | 7.28 | 6.26 | +1.02 | recomputed per window: conversionsValue / cost |
-| Impression share | not available | not available | not available | not returned by any tool here. Google Ads UI, not exported |
+| Impression share | not available | not available | not available | `crm_google_ads_summary` returns it; not pulled into this table by the recipe above |
 
 **Campaigns, this week, cost descending.** Source: `crm_google_ads_campaigns` LAST_7_DAYS. CTR and cost per conversion computed per row.
 
@@ -262,7 +266,7 @@ Worst: Omnichannel inbox, 1,412.80 cost, 331 clicks, 0 conversions. Competitor n
 
 Below the floor, not ranked: Integrations long tail, 18 clicks.
 
-**Search terms.** Source: `crm_google_ads_breakdown` level search_terms, LAST_7_DAYS, 12 rows returned, well under the 500 row cap.
+**Search terms.** Source: `crm_google_ads_breakdown` level search_terms, LAST_7_DAYS, 12 rows returned on the first page, no further cursor.
 
 Add: "whatsapp support panel", 18 clicks, 122.70 cost, 2 conversions, currently matching broadly through "customer support crm".
 
@@ -276,7 +280,7 @@ Brand carried the efficiency, as it usually does: 62.12 per conversion against a
 
 What got worse: the Competitor campaign. It spent 1,760.40, 20.9 percent of the week, for 4 conversions at 440.10 each against a 250 target, and its single ad group is the worst on the account by that measure. The Omnichannel inbox ad group is the other candidate, with 1,412.80 spent and nothing recorded. Separately, two search terms of clear free-tool intent took 508.50 with no conversions, and excluding them is the cheapest change available this week.
 
-Impression share, quality score and device splits are absent from this report because no tool here returns them. Read those rows as missing, not as flat.
+Impression share, quality score and device splits are absent from this report because the recipe above does not pull them, not because no tool returns them. Read those rows as missing, not as flat, and add `crm_google_ads_segments` or the keyword-level breakdown next time if the story needs them.
 
 **Actions.**
 

@@ -31,7 +31,7 @@ Connect the ad account first, in the Pinlyx panel: Insights > Ads > Google Ads >
 }
 ```
 
-`--tools ads` narrows the surface to the Google Ads family. `--read-only` keeps the six read tools and drops the five write tools before your client ever sees a list. Both filters run inside the local bridge, so a filtered tool is not listed and not callable.
+`--tools ads` narrows the surface to the ads family; the 52 Google Ads tools this guide covers split into 26 that read and 26 that write. `--read-only` keeps the read tools and drops every write tool before your client ever sees a list. Both filters run inside the local bridge, so a filtered tool is not listed and not callable.
 
 Two conventions before the JSON starts. MCP tool output is camelCase. And `ctr` is a ratio, not a percentage: `0.0281` means 2.81 percent, and an assistant that reports "CTR 0.03 percent" has read the field and forgotten the unit.
 
@@ -245,7 +245,7 @@ The meter is per workspace per day, and only requests that actually reach Google
 
 **The 15 minute cache.** Report results are cached for 15 minutes, keyed by account, level, campaign filter and range. Repeat the identical call inside that window and you get the same rows for free. Change any part of the key and it is a new call: `LAST_7_DAYS` and `LAST_30_DAYS` are two entries, and one campaign filter is a different entry from no filter.
 
-**Prefer one breakdown call over many.** A single `search_terms` call with no `campaignId` returns up to 500 rows across every campaign for one request. The same coverage split across six campaigns costs six. Only batch by campaign when the unfiltered call comes back with `count` at 500, which means the tail was truncated, or when you genuinely want to review one campaign in isolation.
+**Prefer one breakdown call over many.** A single `search_terms` call with no `campaignId` returns a page of rows across every campaign, cursor-paginated for more, for far fewer requests than one call per campaign. The same coverage split across six campaigns costs six calls at minimum. Only batch by campaign when the unfiltered call's `nextCursor` shows the tail was not on the first page, or when you genuinely want to review one campaign in isolation.
 
 **Any write clears the cache for that account.** Changing a status, a budget or a bidding strategy invalidates every cached report for that account, so the next read is a fresh request. That matters more in the write loop than here, and it is covered in [03: Let an AI Pause Campaigns and Move Budget, Safely](./03-pause-and-rebudget-safely.md).
 

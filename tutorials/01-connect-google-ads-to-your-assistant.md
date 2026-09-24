@@ -211,8 +211,9 @@ still worth reading: in the CRM panel it allows 50 Google Ads requests a day on 
 Pro, and the same ad account may be worked from there by somebody on a lower plan.
 
 Only calls that reach Google count, and reports are cached for 15 minutes, so asking the same
-question twice in a row costs one request, not two. A breakdown call returns up to 500 rows, so
-pulling every search term for a week is a single request, not one per term.
+question twice in a row costs one request, not two. A breakdown call returns a page of rows,
+cursor-paginated for the rest, so pulling every search term for a week is a handful of requests,
+not one per term.
 
 On a capped plan, when the allowance runs out the server answers HTTP 429 with a message naming
 the limit and saying it resets at midnight UTC. Nothing breaks; the next day starts fresh.

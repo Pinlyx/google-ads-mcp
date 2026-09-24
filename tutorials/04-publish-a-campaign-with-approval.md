@@ -25,9 +25,9 @@ Two properties make the shape above defensible: the publish tool refuses any dra
 
 **Approval is not an MCP tool either.** Submit and approve exist only in the panel. That is the point: the reviewer is a person looking at a rendered campaign, not a model deciding it looks fine. Approval is also fragile on purpose. Editing an approved draft sends it back to `Draft` and the approval has to be redone, so nobody can sign off on one campaign and publish a different one.
 
-**No image, video or asset upload.** Nothing in this tool set uploads a file. Image extensions, display creative and video assets are not reachable here. A campaign that needs them is finished in the Google Ads UI after publishing.
+**No image, video or asset upload inside a draft.** A draft spec does not carry ad extensions such as sitelinks or images; add those separately with `crm_google_ads_create_asset` once the campaign exists, which fetches an image from a public https URL rather than a file on your machine, and does not accept video at all. A campaign that needs richer extensions than that gets them after publishing, either from the assistant or in the Google Ads UI.
 
-**No keyword planner.** Nothing returns search volume, competition or a forecast. Keywords come from your own account data, which is what [find wasted Google Ads spend](./02-find-wasted-google-ads-spend.md) is for, or from Google's own planner in the Ads UI.
+**Keyword Planner lives outside this workflow.** `crm_google_ads_keyword_ideas` and `crm_google_ads_forecast` return search volume, competition and a spend forecast, but from the live account, not from inside a draft. Research keywords with those first, or with [find wasted Google Ads spend](./02-find-wasted-google-ads-spend.md) once a campaign already has traffic, then put the result into the draft.
 
 ## Before you start
 

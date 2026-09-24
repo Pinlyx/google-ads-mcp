@@ -42,29 +42,38 @@ Read 01 first. The rest assume its vocabulary and its config block.
 
 ## What you can do through the tools
 
-Eleven tools cover the account end to end. Full schemas are in
-[reference/tools.md](./reference/tools.md).
+52 tools cover the account end to end, 26 that read and 26 that write. Full schemas, every
+argument and its notes are in [reference/tools.md](./reference/tools.md); the table below is a
+starting point, not the whole list.
 
-**Read** (`ads:read`)
+**Read** (`ads:read`), a sample of 26
 
 | Tool | Answers |
 |---|---|
 | `crm_list_google_ads_accounts` | Which ad accounts are connected, and what the daily meter reports |
-| `crm_google_ads_summary` | Spend, impressions, clicks, CTR, average CPC, conversions, conversion value, ROAS |
+| `crm_google_ads_summary` | Spend, impressions, clicks, CTR, average CPC, conversions, conversion value, ROAS, search impression share |
 | `crm_google_ads_campaigns` | Campaign table with status and spend, most expensive first |
-| `crm_google_ads_breakdown` | Ad groups, ads, keywords or search terms, with the same metrics per row |
+| `crm_google_ads_breakdown` | Ad groups, ads, keywords, search terms and several more specialised levels, with the same metrics per row |
 | `crm_google_ads_campaign_settings` | Live status, channel type, bidding strategy and target, daily budget, networks, schedule |
-| `crm_list_ad_drafts` | Campaign drafts waiting to be validated, approved or published |
+| `crm_google_ads_keyword_ideas` / `crm_google_ads_forecast` | Keyword Planner ideas and a spend forecast, before a campaign exists |
+| `crm_google_ads_account_alerts` | Everything that stops or throttles the account's ads, in one health check |
+| `crm_google_ads_change_history` | Who changed what, merging Google's own log with changes made through these tools |
 
-**Write** (`ads:write`)
+**Write** (`ads:write`), a sample of 26
 
 | Tool | Changes |
 |---|---|
 | `crm_set_google_ads_status` | Enable, pause or remove a campaign, ad group, ad or keyword |
 | `crm_update_google_ads_budget` | Daily budget of a campaign, in the account currency |
-| `crm_update_google_ads_bidding` | Bidding strategy, with optional target CPA or target ROAS |
-| `crm_dry_run_ad_draft` | Asks Google to validate a whole campaign without creating anything |
-| `crm_publish_ad_draft` | Publishes an approved draft. The campaign is created paused |
+| `crm_update_google_ads_bidding` | Bidding strategy, including target impression share and portfolio strategies |
+| `crm_google_ads_add_negative_keywords` / `crm_google_ads_remove_negative_keywords` | Negative keywords at the campaign, ad group or shared-list level |
+| `crm_google_ads_create_rsa` / `crm_google_ads_update_ad` | Create or edit a responsive search ad |
+| `crm_google_ads_undo` | Reverts a change made through these tools by its `changeId`, within 30 days |
+
+Most writes accept `validateOnly` to preview a change with Google before anything is sent, and an
+applied change returns a `changeId` that `crm_google_ads_undo` can revert later. Anything that
+removes or permanently changes something, such as `crm_set_google_ads_status` removing an entity
+or `crm_google_ads_manage_negative_list` deleting a shared list, additionally needs `confirm: true`.
 
 ## What is deliberately not automated
 
@@ -76,10 +85,13 @@ Ad accounts spend real money, so three things stay in human hands:
 2. **Enabling spend is explicit.** Publishing never starts delivery. Someone enables the campaign.
 3. **Payment and account setup stay in Google.** Adding a payment method, enabling monthly
    invoicing or creating an ad account are not exposed here, and the Google Ads API does not offer
-   the first two at all.
+   the first two at all. `crm_google_ads_billing` reads billing state; it cannot change it.
 
-There is also no image or video upload and no keyword planner in this tool set today. Where a
-workflow needs them, the tutorials say so instead of pretending.
+Keyword Planner is part of this tool set now (`crm_google_ads_keyword_ideas` and
+`crm_google_ads_forecast`), and an image asset can be added from a public https URL that Pinlyx
+downloads (`crm_google_ads_create_asset`). What is still missing: a raw file upload from your own
+machine, and video assets. Where a workflow needs either, the tutorials say so instead of
+pretending.
 
 ## Requirements
 
@@ -113,9 +125,10 @@ Google counts API operations per project, so the server meters what reaches Goog
 | Business | Unlimited, and the only plan with MCP access |
 
 Two things keep that further than it sounds. Reports are cached for 15 minutes, so re-reading the
-same window costs nothing, and one breakdown call returns up to 500 rows rather than one row per
-call. A full weekly report for one account costs about six requests. On a capped plan, past the
-limit the API answers HTTP 429 and says when it resets, which is midnight UTC.
+same window costs nothing, and one breakdown call returns a page of rows, cursor-paginated for the
+rest, rather than one request per row. A full weekly report for one account costs about six to ten
+requests. On a capped plan, past the limit the API answers HTTP 429 and says when it resets, which
+is midnight UTC.
 
 ## Why an MCP server rather than a chatbot with a Google Ads plugin
 

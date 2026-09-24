@@ -36,7 +36,7 @@ Run two server entries, not one, and if the server and key are not in place yet,
 }
 ```
 
-The ads family holds eleven tools: six reads and five writes. `--read-only` keeps a tool only when the server marks it `readOnlyHint: true`, so the read entry lists six. The filter is applied twice inside the bridge, once when the tool list is built and again on every call, so a model that saw a write tool name in an earlier turn still cannot call it through the read entry.
+The 52 Google Ads tools in this guide split into 26 reads and 26 writes. `--read-only` keeps a tool only when the server marks it `readOnlyHint: true`, so the read entry lists the read half. The filter is applied twice inside the bridge, once when the tool list is built and again on every call, so a model that saw a write tool name in an earlier turn still cannot call it through the read entry.
 
 Work in the read entry by default. Switch to the write entry for the minutes in which you are actually changing something, and switch back.
 
